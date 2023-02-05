@@ -1,0 +1,36 @@
+name: Beautifying XCTest Results
+
+on:
+  push:
+    branches:
+      - main
+
+  workflow_dispatch:
+
+jobs:
+  xctest_html_report:
+    name: XCTestHTMLReport
+    runs-on: macos-12
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v3.1.0
+
+      - name: Install Test Reporter
+        run: brew install xctesthtmlreport
+
+      - name: Run UI Tests
+        run: xcodebuild test -scheme XCTestReport -destination 'platform=iOS Simulator,name=iPhone 14,OS=16.2' -resultBundlePath TestResult | xcpretty
+
+      - name: Generate Test Report
+        run: xchtmlreport TestResult.xcresult
+
+      - name: Deploy to Githup Pages
+        uses: peaceiris/actions-gh-pages@v3.9.2
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./
+          exclude_assets: '.github,XCTestReport.xcodeproj,XCTestReport,XCTestReportUITests'
+          destination_dir: ${{ github.run_id }}
+
+      - name: GitHub Pages
+        run: echo "https://$GITHUB_REPOSITORY_OWNER.github.io/beautifying-xctest-results/$GITHUB_RUN_ID"

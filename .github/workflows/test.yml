@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - main
+    paths-ignore:
+      - "README.md"
 
   workflow_dispatch:
 
@@ -11,7 +13,7 @@ jobs:
   xctest_html_report:
     name: XCTestHTMLReport
     runs-on: macos-12
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v3.1.0
 
@@ -19,12 +21,16 @@ jobs:
         run: brew install xctesthtmlreport
 
       - name: Run UI Tests
-        run: xcodebuild test -scheme XCTestReport -destination 'platform=iOS Simulator,name=iPhone 14,OS=16.2' -resultBundlePath TestResult | xcpretty
+        run: |
+          xcodebuild test \
+            -scheme XCTestReport \
+            -destination 'platform=iOS Simulator,name=iPhone 14,OS=16.2' \
+            -resultBundlePath TestResult | xcpretty
 
       - name: Generate Test Report
         run: xchtmlreport TestResult.xcresult
 
-      - name: Deploy to Githup Pages
+      - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3.9.2
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
@@ -32,5 +38,36 @@ jobs:
           exclude_assets: '.github,XCTestReport.xcodeproj,XCTestReport,XCTestReportUITests'
           destination_dir: ${{ github.run_id }}
 
-      - name: GitHub Pages
+      - name: HTML Report
         run: echo "https://$GITHUB_REPOSITORY_OWNER.github.io/beautifying-xctest-results/$GITHUB_RUN_ID"
+
+  allure:
+    name: Allure Report
+    runs-on: macos-12
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v3.1.0
+
+      - name: Install Test Reporter
+        run: |
+          brew install allure
+          DOWNLOAD_URL="https://github.com/eroshenkoam/xcresults/releases/download/1.13.1/xcresults"
+          curl -sL "${DOWNLOAD_URL}" -o ./xcresults
+          chmod +x ./xcresults
+
+      - name: Run UI Tests
+        run: |
+          xcodebuild test \
+            -scheme XCTestReport \
+            -destination 'platform=iOS Simulator,name=iPhone 14,OS=16.2' \
+            -resultBundlePath TestResult | xcpretty
+
+      - name: Generate Test Report
+        run: |
+          ./xcresults export TestResult.xcresult allure-results
+          allure generate allure-results # Then locally: allure open allure-report
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: Allure Report
+          path: allure-report/

@@ -6,9 +6,9 @@ Read <https://testableapple.com/note-38> for more details 🤠
 
 ## XCTestHTMLReport
 
-- <https://alteral.github.io/beautifying-xctest-results/4098130575/>
-- <https://alteral.github.io/beautifying-xctest-results/4098181045/>
+- <https://testableapple.github.io/beautifying-xctest-results/4098130575/>
+- <https://testableapple.github.io/beautifying-xctest-results/4098181045/>
 
 ## Allure Report
 
-- <https://github.com/alteral/beautifying-xctest-results/suites/10826861100/artifacts/545115662>
+- <https://github.com/testableapple/beautifying-xctest-results/suites/10826861100/artifacts/545115662>
